@@ -27,15 +27,15 @@ public class Main {
 	 * @param args the command line arguments
 	 */
 	public static void main(String[] args) {
-		Recorder.init();
+		/*Recorder.init();
 		
 		JOptionPane.showMessageDialog(null, "Hit ok to start recording");
 		Recorder.start();
 		
 		JOptionPane.showMessageDialog(null, "Hit ok to stop recording");
 		Recorder.stop();
+		*/
 		
-		// TODO Auto-generated method stub
         String filepath = "record.wav";
         try {
             //get raw double array containing .WAV data
@@ -46,27 +46,26 @@ public class Main {
             //initialize parameters for FFT
             int WS = 1024; //WS = window size
             int OF = 8;    //OF = overlap factor
-            int windowStep = WS/OF;
+            int windowStep = WS / OF;
 
             //calculate FFT parameters
             double SR = audioTest.getSampleRate();
-            double time_resolution = WS/SR;
-            double frequency_resolution = SR/WS;
-            double highest_detectable_frequency = SR/2.0;
-            double lowest_detectable_frequency = 5.0*SR/WS;
+            double time_resolution = WS / SR;
+            double frequency_resolution = SR / WS;
+            double highest_detectable_frequency = SR / 2.0;
+            double lowest_detectable_frequency = 5.0 * SR / WS;
 
-            System.out.println("time_resolution:              " + time_resolution*1000 + " ms");
+            System.out.println("time_resolution:              " + time_resolution * 1000 + " ms");
             System.out.println("frequency_resolution:         " + frequency_resolution + " Hz");
             System.out.println("highest_detectable_frequency: " + highest_detectable_frequency + " Hz");
             System.out.println("lowest_detectable_frequency:  " + lowest_detectable_frequency + " Hz");
 
             //initialize plotData array
-            int nX = (length-WS)/windowStep;
+            int nX = (length-WS) / windowStep;
             int nY = WS/2;
             double[][] plotData = new double[nX][nY]; 
 
             //apply FFT and find MAX and MIN amplitudes
-
             double maxAmp = Double.MIN_VALUE;
             double minAmp = Double.MAX_VALUE;
 
@@ -77,15 +76,16 @@ public class Main {
             for (int i = 0; i < nX; i++){
                 Arrays.fill(inputImag, 0.0);
 				DoubleFFT_1D fft = new DoubleFFT_1D(WS);
-                double[] WS_array = Arrays.copyOfRange(rawData, i*windowStep, i*windowStep+WS);
+                double[] WS_array = Arrays.copyOfRange(rawData, i*windowStep, i*windowStep + WS);
 				fft.realForward(WS_array);
+				fft.realInverse(WS_array, true);
                 for (int j = 0; j < nY; j++){
-                    amp_square = (WS_array[2*j]*WS_array[2*j]) + (WS_array[2*j+1]*WS_array[2*j+1]);
-                    if (amp_square == 0.0){
-                        plotData[i][j] = amp_square;
-                    } else {
-                        plotData[i][j] = 10 * Math.log10(amp_square);
-                    }
+                    amp_square = (WS_array[2*j] * WS_array[2*j]) + (WS_array[2*j+1] * WS_array[2*j+1]);
+					// select threshold based on the expected spectrum amplitudes
+					// e.g. 80dB below your signal's spectrum peak amplitude
+					double threshold = 0.5;
+					// limit values and convert to dB
+					plotData[i][nY-j-1] = 10 * Math.log10(Math.max(amp_square, threshold));
 
                     //find MAX and MIN amplitude
                     if (plotData[i][j] > maxAmp)
@@ -104,7 +104,7 @@ public class Main {
             double diff = maxAmp - minAmp;
             for (int i = 0; i < nX; i++){
                 for (int j = 0; j < nY; j++){
-                    plotData[i][j] = (plotData[i][j]-minAmp)/diff;
+                    plotData[i][j] = (plotData[i][j] - minAmp)/diff;
                 }
             }
 
