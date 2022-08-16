@@ -83,8 +83,7 @@ public class Main {
                     amp_square = (WS_array[2*j]*WS_array[2*j]) + (WS_array[2*j+1]*WS_array[2*j+1]);
                     if (amp_square == 0.0){
                         plotData[i][j] = amp_square;
-                    }
-                    else{
+                    } else {
                         plotData[i][j] = 10 * Math.log10(amp_square);
                     }
 

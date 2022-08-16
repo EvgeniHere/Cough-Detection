@@ -69,11 +69,11 @@ public class WAV2Array {
         double[] data_mono = new double[new_length];
 
         double left, right;
-        for (int i = 0; i < new_length; i++) {
-            left = ((data_raw[i] & 0xff) << 8) | (data_raw[i+1] & 0xff);
-            right = ((data_raw[i+2] & 0xff) << 8) | (data_raw[i+3] & 0xff);
-            data_mono[i] = (left + right) / 2.0;
-        }
+        for (int i = 0; 4*i+3 < totalLength; i++){
+			left = (short)((data_raw[4*i+1] & 0xff) << 8) | (data_raw[4*i] & 0xff);
+			right = (short)((data_raw[4*i+3] & 0xff) << 8) | (data_raw[4*i+2] & 0xff);
+			data_mono[i] = (left + right) / 2.0;
+		}       
 		
         return data_mono;
     }
